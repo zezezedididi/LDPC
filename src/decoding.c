@@ -1,63 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-
-#define MAX_ITERATIONS 5
-
-#define CODEWORD_LEN 6 // N
-#define MESSAGE_LEN 3  // K
-#define NUM_CHECKS 4   // M
-
-#define BSC_MODE 0
-#define AWGN_MODE 1
-
-#define CURR_MODE BSC_MODE
-
-#define BSC_ERROR_RATE 0.2
-
-// Function to print a vector int
-void print_vector_int(int vector[], int len)
-{
-    printf("[ ");
-    for (int i = 0; i < len; i++)
-        printf("%d ", vector[i]);
-    printf("]\n");
-}
-
-// Function to print a vector float
-void print_vector_float(float vector[], int len)
-{
-    printf("[ ");
-    for (int i = 0; i < len; i++)
-        printf("%f ", vector[i]);
-    printf("]\n");
-}
-
-// Function to print a matrix int
-void print_matrix_int(int** matrix, int rows, int cols)
-{
-    for (int i = 0; i < rows; i++)
-    {
-        printf("[ ");
-        for (int j = 0; j < cols; j++)
-            printf("%d ", matrix[i][j]);
-        printf("]\n");
-    }
-}
-
-// Function to print a matrix float
-void print_matrix_float(float** matrix, int rows, int cols)
-{
-    for (int i = 0; i < rows; i++)
-    {
-        printf("[ ");
-        for (int j = 0; j < cols; j++)
-            printf("%f ", matrix[i][j]);
-        printf("]\n");
-    }
-}
-
+#include "decoding.h"
 
 // Function to check if it is a valid codeword
 int check_codeword(int H[NUM_CHECKS][CODEWORD_LEN], int codeword[CODEWORD_LEN])
@@ -101,7 +42,7 @@ float* bsc_a_priori_probabilities(int codeword[CODEWORD_LEN])
     return probabilities;
 }
 
-// Function to return a priori probabilities
+// Function to return a priori probabilities based on the chosen mode
 void a_priori_probabilities(int mode, int codeword[CODEWORD_LEN], float** probabilities)
 {
     switch (mode)
@@ -114,6 +55,7 @@ void a_priori_probabilities(int mode, int codeword[CODEWORD_LEN], float** probab
     }
 }
 
+// Function to compute the product of the other probabilities
 float product(float** M, int m, int n)
 {
     float product = 1;
@@ -129,16 +71,28 @@ float product(float** M, int m, int n)
 
 
 // Function to decode the message
-int* decode(int H[NUM_CHECKS][CODEWORD_LEN], int codeword[CODEWORD_LEN])
+void decode(int H[NUM_CHECKS][CODEWORD_LEN], int *recv_codeword, int *codeword_decoded)
 {
-    float *probabilities = (float*)malloc(CODEWORD_LEN * sizeof(float));
-
+    float *probabilities;
     float **M;
     float **extrinsic_probabilities;
     float product_value = 0;
     float L[CODEWORD_LEN];
-    int *codeword_decoded = (int*)malloc(CODEWORD_LEN * sizeof(int));
     int try_n = 0;
+
+    if (recv_codeword == NULL)
+    {
+#ifdef DEBUG
+        printf("Not a valid codeword\n");
+#endif
+        return ;
+    }
+    if(check_codeword(H, recv_codeword) == 1){
+        memcpy(codeword_decoded, recv_codeword, CODEWORD_LEN * sizeof(int));
+        return ;
+    }
+
+    // Initialize variables
 
     M = (float**)malloc(NUM_CHECKS * sizeof(float*));
     extrinsic_probabilities = (float**)malloc(NUM_CHECKS * sizeof(float*));
@@ -147,16 +101,16 @@ int* decode(int H[NUM_CHECKS][CODEWORD_LEN], int codeword[CODEWORD_LEN])
         extrinsic_probabilities[i] = (float*)malloc(CODEWORD_LEN * sizeof(float));
         M[i] = (float*)malloc(CODEWORD_LEN * sizeof(float));
     }
-
+#ifdef DEBUG
     printf("---------------------INITIALIZATIONS----------------------\n");
     
     printf("Codeword: ");
-    print_vector_int(codeword, CODEWORD_LEN);
+    print_vector_int(recv_codeword, CODEWORD_LEN);
     printf("\n");
-    
+#endif
 
     //Compute LLR a priori probabilities (r)
-    a_priori_probabilities(CURR_MODE, codeword, &probabilities);
+    a_priori_probabilities(CURR_MODE, recv_codeword, &probabilities);
 
     // AWGN TEST PRESENT ON PAGE 36
     // float test_awgn[CODEWORD_LEN] = {-0.5, 2.5, -4.0, 5.0, -3.5, 2.5};
@@ -167,10 +121,12 @@ int* decode(int H[NUM_CHECKS][CODEWORD_LEN], int codeword[CODEWORD_LEN])
     // {
     //     probabilities[i] = test_awgn[i];
     // }
-    
+
+#ifdef DEBUG
     printf("Probabilities: ");
     print_vector_float(probabilities, CODEWORD_LEN);
-    
+#endif
+
     // Initialize matrix M
     for (int m = 0; m < NUM_CHECKS; m++)
     {
@@ -182,23 +138,19 @@ int* decode(int H[NUM_CHECKS][CODEWORD_LEN], int codeword[CODEWORD_LEN])
                 M[m][n] = probabilities[n];
         }
     }
-
+#ifdef DEBUG
     printf("Matrix M: \n");
     print_matrix_float(M, NUM_CHECKS, CODEWORD_LEN);
-
+#endif
     while (try_n < MAX_ITERATIONS)
     {
         try_n++;
-        printf("---------------------ITERATION %d----------------------\n", try_n);
-        // Compute extrinsic probabilities matrix (E)
-        for (int i = 0; i < NUM_CHECKS; i++)
-        {
-            for (int j = 0; j < CODEWORD_LEN; j++)
-            {
-                extrinsic_probabilities[i][j] = 0;
-            }
-        }
 
+#ifdef DEBUG
+        printf("---------------------ITERATION %d----------------------\n", try_n);
+#endif
+
+        // Compute extrinsic probabilities matrix (E)
         for (int m = 0; m < NUM_CHECKS; m++)
         {
             for (int n = 0; n < CODEWORD_LEN; n++)
@@ -212,10 +164,10 @@ int* decode(int H[NUM_CHECKS][CODEWORD_LEN], int codeword[CODEWORD_LEN])
                 }
             }
         }
-
+#ifdef DEBUG
         printf("Extrinsic probabilities: \n");
         print_matrix_float(extrinsic_probabilities, NUM_CHECKS, CODEWORD_LEN);
-
+#endif
         // Test
         for(int n = 0; n < CODEWORD_LEN; n++)
         {
@@ -226,13 +178,25 @@ int* decode(int H[NUM_CHECKS][CODEWORD_LEN], int codeword[CODEWORD_LEN])
             }
             codeword_decoded[n] = (L[n] < 0) ? 1 : 0;
         }
+#ifdef DEBUG
         printf("Final L: ");
         print_vector_float(L, CODEWORD_LEN);
+#endif
         // Check if it is a valid codeword
         if (check_codeword(H, codeword_decoded) == 1)
         {
+#ifdef DEBUG
             printf("Completed after %d iterations\n", try_n);
-            return codeword_decoded;
+#endif
+            free(probabilities);
+            for (int i = 0; i < NUM_CHECKS; i++)
+            {
+                free(M[i]);
+                free(extrinsic_probabilities[i]);
+            }
+            free(M);
+            free(extrinsic_probabilities);
+            return ;
         }
 
         // Update matrix M
@@ -252,84 +216,17 @@ int* decode(int H[NUM_CHECKS][CODEWORD_LEN], int codeword[CODEWORD_LEN])
             }
         }
     }
-
-    printf("Not completed after %d iterations\n", try_n);
-
-    return NULL;
-    
-}
-
-void possible_codeword_list(int ***list)
-{
-    *list = (int**)malloc(64 * sizeof(int*));
-    for (int i = 0; i < 64; i++)
+#ifdef DEBUG
+    printf("Not completed after %d iterations\n", try_n);  
+#endif
+    codeword_decoded = NULL;
+    free(probabilities);
+    for (int i = 0; i < NUM_CHECKS; i++)
     {
-        (*list)[i] = (int*)malloc(CODEWORD_LEN * sizeof(int));
+        free(M[i]);
+        free(extrinsic_probabilities[i]);
     }
-
-    for (int i = 0; i < 64; i++)
-    {
-        for (int j = 0; j < CODEWORD_LEN; j++)
-        {
-            (*list)[i][CODEWORD_LEN - 1 - j] = (i >> j) & 1;
-        }
-    }
-}
-
-// Function to check all possible codewords
-void check_possible_codewords(int H[NUM_CHECKS][CODEWORD_LEN])
-{
-    int *codeword_decoded;
-    int **possible_codeword_l;
-    possible_codeword_list(&possible_codeword_l);
-    
-    codeword_decoded = (int*)malloc(CODEWORD_LEN * sizeof(int));
-    int check = 0;
-    for (int i = 0; i < 64; i++)
-    {
-        check = check_codeword(H, possible_codeword_l[i]);
-            printf("[ ");
-            for (int j = 0; j < CODEWORD_LEN; j++)
-                printf("%d ", possible_codeword_l[i][j]);
-            printf("] -> ");
-        if (check == 1)
-        {
-            printf("Valid codeword\n");
-        }
-        else
-        { 
-            codeword_decoded = decode(H, possible_codeword_l[i]);
-            if (codeword_decoded == NULL)
-            {
-                printf("Not a valid codeword\n");
-                continue;
-            }
-            else
-            {
-                print_vector_int(codeword_decoded, CODEWORD_LEN);   
-            }
-        }
-    }
-}
-
-int main()
-{
-    int H[NUM_CHECKS][CODEWORD_LEN] = {{1, 1, 0, 1, 0, 0},
-                                       {0, 1, 1, 0, 1, 0},
-                                       {1, 0, 0, 0, 1, 1},
-                                       {0, 0, 1, 1, 0, 1}};
-
-    int codeword[CODEWORD_LEN] = {1, 0, 1, 0, 1, 1};
-
-    int *codeword_decoded = decode(H, codeword);
-
-    if(codeword_decoded == NULL)
-    {
-        printf("Not a valid codeword\n");
-        return 0;
-    }
-    print_vector_int(codeword_decoded, CODEWORD_LEN);
-
-    //check_possible_codewords(H);
-    return 0;
+    free(M);
+    free(extrinsic_probabilities);
+    return ;
 }
