@@ -53,12 +53,22 @@ s = zH' and s must be a vector with only 0's
 
 H' is HT
 
+## Matrix representation
+
+As matrizes neste momento têm este formato num ficheiro txt:
+    >1st line: number_rows number_columns type
+    >2nd-end : matrix 
+    
+Como o valor para as matrizes the paridade são 1 ou 0 só é necessário guardar os valores dos indices
+Isto é inefeciente e têm que ser alterado já está no TODO
+a maneira melhor seria guardar isto exatamente como está guardado dentro do programa (binario).
+
+Dentro do programa em si as matrizes estão gruardadas numa estrutura pchk definida no defs
+a estrutura é basicamente o que está no ficheiro
 
 
 
-
-
-Example for encoding
+## Example for encoding
 
 [1 0 0 1 0 1]
 [0 1 0 1 1 1]
@@ -82,3 +92,18 @@ pega na segunda linha e copia-a para a codeword
 depois pega na terceira linha e da xor das duas
 [0 1 0 1 1 1] xor [0 0 1 0 1 1] = [0 1 1 1 0 0]
 
+
+## TODO 
+
+-implementar um sistema de ficheiros melhor que txt
+    >vou tentar roubar a idea feita nas noutras implementações por parecer ser bem optimizado
+-implementar matrizes esparsas
+    >leitura da matrix
+    >adaptar encoding e decoding
+    >o encoding passa a ser o if no lado da matriz
+-remover coisas fixas no ficheiro defs:
+    >CODEWORD_LEN
+    >MESSAGE_LEN
+    >NUM_CHECKS
+
+-check_possible_codewords() is a function in the decoding header that is not implemented => is this a issue???

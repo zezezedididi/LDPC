@@ -22,6 +22,6 @@ void print_matrix_float(float** matrix, int rows, int cols);
 void possible_codeword_list(int ***list);
 
 // Function to check all possible codewords
-void check_possible_codewords(int H[NUM_CHECKS][CODEWORD_LEN]);
+void check_possible_codewords(pchk H);
 
 #endif

@@ -1,7 +1,7 @@
 #include "decoding.h"
 
 // Function to check if it is a valid codeword
-int check_codeword(int H[NUM_CHECKS][CODEWORD_LEN], int codeword[CODEWORD_LEN])
+int check_codeword(pchk H, int codeword[CODEWORD_LEN])
 {
     int check = 0;
 
@@ -11,7 +11,7 @@ int check_codeword(int H[NUM_CHECKS][CODEWORD_LEN], int codeword[CODEWORD_LEN])
         {
             if (codeword[n] == 1)
             {
-                check ^= H[m][n];
+                check ^= H.A[m][n];
             }
         }
         if (check == 1)
@@ -71,7 +71,7 @@ float product(float** M, int m, int n)
 
 
 // Function to decode the message
-void decode(int H[NUM_CHECKS][CODEWORD_LEN], int *recv_codeword, int *codeword_decoded)
+void decode(pchk H, int *recv_codeword, int *codeword_decoded)
 {
     float *probabilities;
     float **M;
@@ -132,7 +132,7 @@ void decode(int H[NUM_CHECKS][CODEWORD_LEN], int *recv_codeword, int *codeword_d
     {
         for (int n = 0; n < CODEWORD_LEN; n++)
         {
-            if (H[m][n] == 0)
+            if (H.A[m][n] == 0)
                 M[m][n] = 0;
             else
                 M[m][n] = probabilities[n];
@@ -155,7 +155,7 @@ void decode(int H[NUM_CHECKS][CODEWORD_LEN], int *recv_codeword, int *codeword_d
         {
             for (int n = 0; n < CODEWORD_LEN; n++)
             {
-                if (H[m][n] == 0)
+                if (H.A[m][n] == 0)
                 {
                     extrinsic_probabilities[m][n] = 0;
                 } else {
@@ -204,7 +204,7 @@ void decode(int H[NUM_CHECKS][CODEWORD_LEN], int *recv_codeword, int *codeword_d
         {
             for (int m = 0; m < NUM_CHECKS; m++)
             {
-                if (H[m][n] == 0)
+                if (H.A[m][n] == 0)
                 {
                     M[m][n] = 0;
                 }

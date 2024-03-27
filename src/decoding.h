@@ -9,7 +9,7 @@
 #include "defs.h"
 
 // Function to check if it is a valid codeword
-int check_codeword(int H[NUM_CHECKS][CODEWORD_LEN], int codeword[CODEWORD_LEN]);
+int check_codeword(pchk H, int codeword[CODEWORD_LEN]);
 
 // Function to compute a BSC a priori probabilities
 float* bsc_a_priori_probabilities(int codeword[CODEWORD_LEN]);
@@ -21,9 +21,10 @@ void a_priori_probabilities(int mode, int codeword[CODEWORD_LEN], float** probab
 float product(float** M, int m, int n);
 
 // Function to decode the message
-void decode(int H[NUM_CHECKS][CODEWORD_LEN], int* recv_codeword, int* codeword_decoded);
+void decode(pchk H, int* recv_codeword, int* codeword_decoded);
 
 // Function to check all possible codewords
-void check_possible_codewords(int H[NUM_CHECKS][CODEWORD_LEN]);
+//THIS FUNCTION DOESNT EXIST!
+void check_possible_codewords(pchk H);
 
 #endif

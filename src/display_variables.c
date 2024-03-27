@@ -61,7 +61,7 @@ void possible_codeword_list(int ***list)
 }
 
 // Function to check all possible codewords
-void check_possible_codewords(int H[NUM_CHECKS][CODEWORD_LEN])
+void check_possible_codewords(pchk H)
 {
     int *codeword_decoded;
     int **possible_codeword_l;
