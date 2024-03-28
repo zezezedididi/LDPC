@@ -96,14 +96,12 @@ depois pega na terceira linha e da xor das duas
 ## TODO 
 
 -implementar um sistema de ficheiros melhor que txt
-    >vou tentar roubar a idea feita nas noutras implementações por parecer ser bem optimizado
+    >fazer um programa para escrever novas matrizes
 -implementar matrizes esparsas
-    >leitura da matrix
+    >adaptar o display das matrizes
     >adaptar encoding e decoding
     >o encoding passa a ser o if no lado da matriz
 -remover coisas fixas no ficheiro defs:
     >CODEWORD_LEN
     >MESSAGE_LEN
     >NUM_CHECKS
-
--check_possible_codewords() is a function in the decoding header that is not implemented => is this a issue???

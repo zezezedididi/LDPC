@@ -22,34 +22,39 @@ void BSC_noise(int *codeword, float p)
 }
 
 //this is to go in the seperate file
-void **get_matrix_from_file(pchk matrix,char *filename){
+void **get_matrix_from_file(pchk *matrix,char *filename){
     FILE *f = fopen (filename,"r");
+    int i=0;
 
+    //Open file to read
     if(f==NULL){
         printf("couldn't open matrix file %s\n",filename);
         exit(1);
     }    
 
-    //general info
-    fscanf(f,"%d %d %d",&matrix.n_col,&matrix.n_row,&matrix.type);
-    matrix.A = (int**)malloc(matrix.n_row*sizeof(int*));
+    //matrix info
+    fread(&(matrix->n_row),sizeof(int),1,f);
+    fread(&(matrix->n_col),sizeof(int),1,f);
+    fread(&(matrix->type),sizeof(int),1,f);
 
-    //matrix A
-    if (matrix.type == 0){
-        for(int r=0;r<matrix.n_row;r++){
-            matrix.A[r]=(int*)malloc(matrix.n_col*sizeof(int));
-            for (int c=0;c<matrix.n_col;c++){
-                fscanf(f,"%d",&(matrix.A[r][c]));
-            }
+    //A
+    matrix->A = (int**)malloc(matrix->n_row*sizeof(int*));
+    if(matrix->type ==0){
+        //normal
+        for(int c=0;c<matrix->n_row;c++){
+            matrix->A[c] = (int*)malloc(matrix->n_col*sizeof(int));
+            fread(matrix->A[c],sizeof(int),matrix->n_col,f);
         }
     }
     else{
-        printf("ainda nao esta implementado\n");
-        exit(1);
+        //sparse
+        for(int c=0;c<matrix->n_row;c++){
+            fread(&i,sizeof(int),1,f);
+            matrix->A[c] = (int*)malloc(i*sizeof(int));
+            fread(matrix->A[c],sizeof(int),i,f);
+        }
     }
-
     fclose(f);
-
     return NULL;
 }
 
@@ -57,21 +62,22 @@ int main(int argc, char *argv[])
 {
     //check input arguments
     if(argc!=3){
-        printf("Incorrect usage!\n Correct usage is: ./ldpc G.txt H.txt\n");
+        printf("Incorrect usage!\n Correct usage is: ./ldpc G_filepath H_filepath\n");
         exit(1);
     }
 
     //get parity check matrices from file
     pchk H,G;
-    get_matrix_from_file(H,argv[1]);
-    get_matrix_from_file(G,argv[1]);
+    get_matrix_from_file(&H,argv[1]);
+    get_matrix_from_file(&G,argv[1]);
 
 #ifdef DEBUG
-    print_matrix_int(H.A,H.n_col,H.n_row);
+    print_matrix_int(H.A,H.n_row,H.n_col);
     printf("\n");
-    print_matrix_int(G.A,G.n_col,G.n_row);
+    print_matrix_int(G.A,G.n_row,G.n_col);
 #endif
 
+    exit(0);
 
     int message[MESSAGE_LEN] = {1, 0, 1};
     

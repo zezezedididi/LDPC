@@ -14,7 +14,6 @@
 
     #define BSC_ERROR_RATE 0.2
 
-
     typedef struct Pchk{
         int n_row;
         int n_col;
@@ -22,5 +21,5 @@
         int **A;
     } pchk;
 
-//#define DEBUG
+    #define DEBUG
 #endif
