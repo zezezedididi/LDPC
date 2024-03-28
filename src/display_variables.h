@@ -15,6 +15,9 @@ void print_vector_float(float vector[], int len);
 // Function to print a matrix int
 void print_matrix_int(int** matrix, int rows, int cols);
 
+//Function to print the structure parity check(pchk)
+void print_parity_check(pchk mat);
+
 // Function to print a matrix float
 void print_matrix_float(float** matrix, int rows, int cols);
 

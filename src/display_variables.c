@@ -30,6 +30,30 @@ void print_matrix_int(int** matrix, int rows, int cols)
     }
 }
 
+//Function to print the structure parity check(pchk)
+void print_parity_check(pchk mat){
+    if(mat.type == 0){
+        //normal
+        for (int i = 0; i < mat.n_row; i++)
+        {
+            printf("[ ");
+            for (int j = 0; j < mat.n_col; j++)
+                printf("%d ", mat.A[i][j]);
+            printf("]\n");
+        }
+    }
+    else{
+        //sparse
+        for (int i = 0; i < mat.n_row; i++){
+            printf("[ ");
+            for (int j = 0; j < mat.A[i][0]; j++)
+                printf("%d ", mat.A[i][j+1]);    
+            printf("]\n");
+        }
+
+    }
+}
+
 // Function to print a matrix float
 void print_matrix_float(float** matrix, int rows, int cols)
 {
