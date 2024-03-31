@@ -97,10 +97,6 @@ depois pega na terceira linha e da xor das duas
 
 -implementar um sistema de ficheiros melhor que txt
     >fazer um programa para escrever novas matrizes (vou usar o test entretanto)
--remover coisas fixas no ficheiro defs: - working on it has I implement sparse
-    >CODEWORD_LEN 
-    >MESSAGE_LEN
-    >NUM_CHECKS
 -implementar matrizes esparsas
     >adaptar o display das matrizes
     >adaptar decoding

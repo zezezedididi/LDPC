@@ -58,8 +58,6 @@ int main(int argc, char *argv[])
     BSC_noise(codeword_encoded, BSC_ERROR_RATE);
 
     print_vector_int(codeword_encoded, CODEWORD_LEN);
-
-    exit(0);
     
     decode(H, codeword_encoded, codeword_decoded);
 

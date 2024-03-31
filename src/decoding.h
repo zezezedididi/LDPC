@@ -9,13 +9,13 @@
 #include "defs.h"
 
 // Function to check if it is a valid codeword
-int check_codeword(pchk H, int codeword[CODEWORD_LEN]);
+int check_codeword(pchk H, int *codeword);
 
 // Function to compute a BSC a priori probabilities
-float* bsc_a_priori_probabilities(int codeword[CODEWORD_LEN]);
+float* bsc_a_priori_probabilities(int codeword_len,int *codeword);
 
 // Function to return a priori probabilities
-void a_priori_probabilities(int mode, int codeword[CODEWORD_LEN], float** probabilities);
+void a_priori_probabilities(int mode,int codeword_len, int codeword[CODEWORD_LEN], float** probabilities);
 
 // Function to compute the product of the other probabilities
 float product(float** M, int m, int n);
