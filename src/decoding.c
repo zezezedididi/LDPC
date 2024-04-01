@@ -104,6 +104,7 @@ void Update_M(pchk H,float **M,float *L,float **extrinsic_probabilities){
     }
 }
 
+//Function to get new best guess as well has probabilities
 void Get_state(pchk H, float *L, int *codeword_decoded, float *probabilities, float **extrinsic_probabilities){
     for(int n = 0; n < H.n_col; n++)
     {

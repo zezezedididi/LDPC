@@ -98,6 +98,6 @@ depois pega na terceira linha e da xor das duas
 -implementar um sistema de ficheiros melhor que txt
     >fazer um programa para escrever novas matrizes (vou usar o test entretanto)
 -implementar matrizes esparsas
-    >adaptar o display das matrizes
-    >adaptar decoding
+    >criar file novo para matrizes esparsas decoding e fazer as coisas
+    >juntar os dois ficheiro se for possível/útil
 
