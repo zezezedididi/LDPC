@@ -85,6 +85,36 @@ void compute_extrinsic(pchk H,float ** extrinsic_probabilities, float **M){
     }
 }
 
+//Function to Update matrix M
+void Update_M(pchk H,float **M,float *L,float **extrinsic_probabilities){
+    for (int n = 0; n < H.n_col; n++)
+    {
+        for (int m = 0; m < H.n_row; m++)
+        {
+            if (H.A[m][n] == 0)
+            {
+                M[m][n] = 0;
+            }
+            else
+            {
+                M[m][n] = L[n] - extrinsic_probabilities[m][n];
+            }
+            
+        }
+    }
+}
+
+void Get_state(pchk H, float *L, int *codeword_decoded, float *probabilities, float **extrinsic_probabilities){
+    for(int n = 0; n < H.n_col; n++)
+    {
+        L[n] = probabilities[n];
+        for(int m = 0; m < H.n_row; m++)
+        {
+            L[n] += extrinsic_probabilities[m][n];
+        }
+        codeword_decoded[n] = (L[n] < 0) ? 1 : 0;
+    }
+}
 
 // Function to decode the message
 void decode(pchk H, int *recv_codeword, int *codeword_decoded)
@@ -162,15 +192,7 @@ void decode(pchk H, int *recv_codeword, int *codeword_decoded)
         print_matrix_float(extrinsic_probabilities, H.n_row, H.n_col);
 #endif
         // Test
-        for(int n = 0; n < H.n_col; n++)
-        {
-            L[n] = probabilities[n];
-            for(int m = 0; m < H.n_row; m++)
-            {
-                L[n] += extrinsic_probabilities[m][n];
-            }
-            codeword_decoded[n] = (L[n] < 0) ? 1 : 0;
-        }
+        Get_state(H,L,codeword_decoded,probabilities,extrinsic_probabilities);
 #ifdef DEBUG
         printf("Final L: ");
         print_vector_float(L, H.n_col);
@@ -181,36 +203,15 @@ void decode(pchk H, int *recv_codeword, int *codeword_decoded)
 #ifdef DEBUG
             printf("Completed after %d iterations\n", try_n);
 #endif
-            free(probabilities);
-            for (int i = 0; i < H.n_row; i++)
-            {
-                free(M[i]);
-                free(extrinsic_probabilities[i]);
-            }
-            free(M);
-            free(extrinsic_probabilities);
-            return ;
+            break;
         }
 
         // Update matrix M
-        for (int n = 0; n < H.n_col; n++)
-        {
-            for (int m = 0; m < H.n_row; m++)
-            {
-                if (H.A[m][n] == 0)
-                {
-                    M[m][n] = 0;
-                }
-                else
-                {
-                    M[m][n] = L[n] - extrinsic_probabilities[m][n];
-                }
-                
-            }
-        }
+        Update_M(H,M,L,extrinsic_probabilities);
     }
 #ifdef DEBUG
-    printf("Not completed after %d iterations\n", try_n);  
+    if(try_n == MAX_ITERATIONS)
+        printf("Not completed after %d iterations\n", try_n);  
 #endif
     codeword_decoded = NULL;
     free(probabilities);
