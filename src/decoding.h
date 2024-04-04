@@ -15,16 +15,16 @@ int check_codeword(pchk H, int *codeword);
 float* bsc_a_priori_probabilities(int codeword_len,int *codeword);
 
 // Function to return a priori probabilities
-void a_priori_probabilities(int mode,int codeword_len, int codeword[CODEWORD_LEN], float** probabilities);
+void a_priori_probabilities(int mode,int codeword_len, int* codeword, float** probabilities);
 
 // Function to compute the product of the other probabilities
+//this isnt used outside
 float product(float** M, int m, int n);
 
 // Function to decode the message
 void decode(pchk H, int* recv_codeword, int* codeword_decoded);
 
 // Function to check all possible codewords
-//THIS FUNCTION DOESNT EXIST!
 void check_possible_codewords(pchk H);
 
 #endif

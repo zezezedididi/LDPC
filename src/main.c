@@ -5,6 +5,8 @@
 #include "defs.h"
 #include "storage.h"
 
+#include "sparse_decoding.c"
+
 //this is to go in the seperate file
 #include <string.h>
 
