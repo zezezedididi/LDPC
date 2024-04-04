@@ -101,8 +101,6 @@ int main(int argc, char *argv[])
         printf("\n");
 #endif
         sdecode(H,TH,codeword_encoded,codeword_decoded);
-        printf("done decoing\n");
-        return 0;
     }
     else
         decode(H, codeword_encoded, codeword_decoded);

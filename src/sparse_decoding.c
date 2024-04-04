@@ -1,4 +1,5 @@
 #include "sparse_decoding.h"
+#include "display_variables.h"
 
 // Function to check if it is a valid codeword
 int scheck_codeword(pchk H, int *codeword){
@@ -51,18 +52,17 @@ void scompute_extrinsic(pchk H,pchk TH,float ** E, float **M, float *LE){
     int mj;
 
     //compute new LE
-    for (int i=0;i<TH.n_col;i++){
-        LE[i]=0;
+    for (int i=0;i<TH.n_row;i++){
+        LE[i]=1;
         for (int j=0; j<TH.A[i][0]; j++)
             LE[i] *= tanh(M[i][j]/2);
     }
 
     //Update E
-    for (int j=0;j<H.n_col;j++){
+    for (int j=0;j<H.n_row;j++){
         for (int i=0;i<H.A[j][0];i++){
             //finding the real index where Mi,j is stored
-            for(mj=1;TH.A[i][mj]!=j;mj++);
-
+            for(mj=0;TH.A[ H.A[j][i+1] ][mj+1] != j;mj++);
             p = LE[j] / M[i][mj];
             E[j][i] = log((1+p)/(1-p));
         }
@@ -72,10 +72,11 @@ void scompute_extrinsic(pchk H,pchk TH,float ** E, float **M, float *LE){
 //Function to Update matrix M
 void sUpdate_M(pchk H,pchk TH,float **M,float *L,float **E){
     int mi;
-    for (int i=0;i<TH.n_col;i++){
+    
+    for (int i=0;i<TH.n_row;i++){
         for (int j=0;j<TH.A[i][0];j++){
             //finding the real index where Ei,j is stored
-            for(mi=1;H.A[j][mi]!=i;mi++);
+            for(mi=0;H.A[ TH.A[i][j+1] ][mi]!=i;mi++);
 
             M[i][j] = L[i] - E[j][mi];
         }
@@ -85,7 +86,7 @@ void sUpdate_M(pchk H,pchk TH,float **M,float *L,float **E){
 //Function to get new best guess as well has probabilities
 void sGet_state(pchk H, float *L, int *z, float *r, float **E){
 
-    for (int j=0;j<H.n_col;j++){
+    for (int j=0;j<H.n_row;j++){
         L[j] = r[j];
         for (int i=0;i<H.A[j][0];i++)
             L[j] += E[j][i];
@@ -145,16 +146,15 @@ void sdecode(pchk H,pchk TH, int *recv_codeword, int *codeword_decoded){
     
     // Initialize matrix M
     for (int i = 0; i < TH.n_row; i++){
-        for (int j = 1; j < TH.A[i][0]; j++)
+        for (int j = 0; j < TH.A[i][0]; j++)
             M[i][j] = r[i];
     }
 #ifdef DEBUG
     printf("Matrix M: \n");
-    print_matrix_float(M, H.n_row, H.n_col);
+    print_sparse_float(TH,M);
 #endif
 
-    while (try_n < MAX_ITERATIONS)
-    {
+    while (try_n < MAX_ITERATIONS){
         try_n++;
 
 #ifdef DEBUG
@@ -165,7 +165,7 @@ void sdecode(pchk H,pchk TH, int *recv_codeword, int *codeword_decoded){
         scompute_extrinsic(H,TH,E,M,LE);
 #ifdef DEBUG
         printf("Extrinsic probabilities: \n");
-        print_matrix_float(E, H.n_row, H.n_col);
+        print_sparse_float(H,E);
 #endif
         // Test
         sGet_state(H,L,codeword_decoded,r,E);
@@ -174,8 +174,7 @@ void sdecode(pchk H,pchk TH, int *recv_codeword, int *codeword_decoded){
         print_vector_float(L, H.n_col);
 #endif
         // Check if it is a valid codeword
-        if (check_codeword(H, codeword_decoded) == 1)
-        {
+        if (scheck_codeword(H, codeword_decoded) == 1){
 #ifdef DEBUG
             printf("Completed after %d iterations\n", try_n);
 #endif
