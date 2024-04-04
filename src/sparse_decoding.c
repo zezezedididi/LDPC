@@ -1,14 +1,13 @@
-#include "decoding.h"
+#include "sparse_decoding.h"
 
 // Function to check if it is a valid codeword
-int scheck_codeword(pchk TH, int *codeword)
-{
+int scheck_codeword(pchk TH, int *codeword){
     int check = 0;
 
-    for (int i=0;i<TH.n_col;i++){
+    for (int i=0;i<TH.n_row;i++){
         for (int j=0;j<TH.A[i][0];j++)
-            check ^= codeword[TH.A[j][i+1]];
-        if(check == 1)
+            check ^= codeword[TH.A[i][j+1]];
+        if(check != 0)
             return 0;
     }
     return 1;
@@ -95,39 +94,40 @@ void sGet_state(pchk H, float *L, int *z, float *r, float **E){
 }
 
 // Function to decode the message
-void sdecode(pchk H,pchk TH, int *recv_codeword, int *codeword_decoded)
-{
+void sdecode(pchk H,pchk TH, int *recv_codeword, int *codeword_decoded){
     float *r;
     float **M,**E;
     float *L,*LE;
     int try_n = 0;
-
-    if (recv_codeword == NULL)
-    {
+    
+    if (recv_codeword == NULL){
 #ifdef DEBUG
         printf("Not a valid codeword\n");
 #endif
         return ;
     }
-    if(scheck_codeword(H, recv_codeword) == 1){
+    if(scheck_codeword(TH, recv_codeword) == 1){
         memcpy(codeword_decoded, recv_codeword, H.n_col * sizeof(int));
         return ;
     }
-
     // Initialize variables
     //H is the index for E and TH is the index for M
     L = (float *)calloc(H.n_row , sizeof(float*)); //colapsed E + prob
     LE = (float *)calloc(TH.n_row , sizeof(float*)); //colapsed product of M
 
     M = (float**)malloc(TH.n_row * sizeof(float*));
-    for(int i=0; i<TH.n_row ; i++)
-        M[i]=(float *)malloc(TH.A[i][0] * sizeof(float*));
+    for(int i=0; i<TH.n_row ; i++){
+        if(TH.A[i][0] != 0)
+            M[i]=(float *)malloc(TH.A[i][0] * sizeof(float*));
+    }
 
     E = (float**)malloc(H.n_col * sizeof(float*));
-    for(int j=0; j<H.n_row ; j++)
-        E[j]=(float *)malloc(H.A[j][0] * sizeof(float*));
-
+    for(int j=0; j<H.n_row ; j++){
+        if(H.A[j][0] != 0)
+            E[j]=(float *)malloc(H.A[j][0] * sizeof(float*));
+    }
     
+    printf("done\n");
 #ifdef DEBUG
     printf("---------------------INITIALIZATIONS----------------------\n");
     
@@ -145,8 +145,8 @@ void sdecode(pchk H,pchk TH, int *recv_codeword, int *codeword_decoded)
 #endif
     
     // Initialize matrix M
-    for (int i = 0; i < H.n_row; i++){
-        for (int j = 1; j < H.A[i][0]; j++)
+    for (int i = 0; i < TH.n_row; i++){
+        for (int j = 1; j < TH.A[i][0]; j++)
             M[i][j] = r[i];
     }
 #ifdef DEBUG

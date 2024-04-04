@@ -5,7 +5,7 @@
 #include "defs.h"
 #include "storage.h"
 
-#include "sparse_decoding.c"
+#include "sparse_decoding.h"
 
 //this is to go in the seperate file
 #include <string.h>
@@ -66,8 +66,9 @@ int main(int argc, char *argv[])
 
     //get parity check matrices from file
     pchk H,G,TH;
-    get_matrix_from_file(&H,argv[1]);
-    get_matrix_from_file(&G,argv[2]);
+    get_matrix_from_file(&G,argv[1]);
+    get_matrix_from_file(&H,argv[2]);
+    
 
 #ifdef DEBUG
     print_parity_check(H);
@@ -95,8 +96,14 @@ int main(int argc, char *argv[])
     
     if(H.type==1){
         Transpose_pchk(&TH,H);
+        printf("\n\n");
+        print_parity_check(H);
+        printf("\n\n");
         print_parity_check(TH);
-        //sdecode(H,TH,codeword_encoded,codeword_decoded);
+        printf("\n\n");
+        sdecode(H,TH,codeword_encoded,codeword_decoded);
+        printf("done decoing\n");
+        return 0;
     }
     else
         decode(H, codeword_encoded, codeword_decoded);
