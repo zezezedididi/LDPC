@@ -68,12 +68,11 @@ int main(int argc, char *argv[])
     pchk H,G,TH;
     get_matrix_from_file(&G,argv[1]);
     get_matrix_from_file(&H,argv[2]);
-    
 
 #ifdef DEBUG
-    print_parity_check(H);
-    printf("\n");
     print_parity_check(G);
+    printf("\n");
+    print_parity_check(H);
     printf("\n");
 #endif
     int message[MESSAGE_LEN] = {0, 0, 0};
@@ -96,11 +95,11 @@ int main(int argc, char *argv[])
     
     if(H.type==1){
         Transpose_pchk(&TH,H);
-        printf("\n\n");
-        print_parity_check(H);
-        printf("\n\n");
+#ifdef DEBUG
+        printf("\n");
         print_parity_check(TH);
-        printf("\n\n");
+        printf("\n");
+#endif
         sdecode(H,TH,codeword_encoded,codeword_decoded);
         printf("done decoing\n");
         return 0;

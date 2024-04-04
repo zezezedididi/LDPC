@@ -1,12 +1,12 @@
 #include "sparse_decoding.h"
 
 // Function to check if it is a valid codeword
-int scheck_codeword(pchk TH, int *codeword){
+int scheck_codeword(pchk H, int *codeword){
     int check = 0;
 
-    for (int i=0;i<TH.n_row;i++){
-        for (int j=0;j<TH.A[i][0];j++)
-            check ^= codeword[TH.A[i][j+1]];
+    for (int i=0;i<H.n_row;i++){
+        for (int j=0;j<H.A[i][0];j++)
+            check ^= codeword[H.A[i][j+1]];
         if(check != 0)
             return 0;
     }
@@ -106,7 +106,7 @@ void sdecode(pchk H,pchk TH, int *recv_codeword, int *codeword_decoded){
 #endif
         return ;
     }
-    if(scheck_codeword(TH, recv_codeword) == 1){
+    if(scheck_codeword(H, recv_codeword) == 1){
         memcpy(codeword_decoded, recv_codeword, H.n_col * sizeof(int));
         return ;
     }
@@ -127,7 +127,6 @@ void sdecode(pchk H,pchk TH, int *recv_codeword, int *codeword_decoded){
             E[j]=(float *)malloc(H.A[j][0] * sizeof(float*));
     }
     
-    printf("done\n");
 #ifdef DEBUG
     printf("---------------------INITIALIZATIONS----------------------\n");
     

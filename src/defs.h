@@ -21,5 +21,5 @@
         int **A;
     } pchk;
 
-    //#define DEBUG
+    #define DEBUG
 #endif
