@@ -24,9 +24,9 @@ void **get_matrix_from_file(pchk *matrix,char *filename){
     }
     else{
         //sparse
-        matrix->A    = (int**)malloc(2               *sizeof(int*));
-        matrix->A[0] = (int *)malloc(matrix->type    *sizeof(int ));
-        matrix->A[1] = (int *)malloc(matrix->n_row+1 *sizeof(int ));
+        matrix->A    = (int**)malloc(2                 *sizeof(int*));
+        matrix->A[0] = (int *)malloc(matrix->type      *sizeof(int ));
+        matrix->A[1] = (int *)malloc((matrix->n_row+1 )*sizeof(int ));
 
         
         fread(matrix->A[0],sizeof(int),matrix->type,f);

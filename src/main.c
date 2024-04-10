@@ -33,10 +33,10 @@ void *Transpose_pchk(pchk *Tmat,pchk mat){
     Tmat->type  = mat.type;
 
     //allocate space
-    Tmat->A    = (int **)malloc(2             *sizeof(int*));
-    Tmat->A[0] = (int * )malloc(Tmat->type    *sizeof(int ));
-    Tmat->A[1] = (int * )malloc(Tmat->n_row+1 *sizeof(int ));
-    row_count  = (int * )calloc(Tmat->n_row   ,sizeof(int ));
+    Tmat->A    = (int **)malloc(2              *sizeof(int*));
+    Tmat->A[0] = (int * )malloc(Tmat->type     *sizeof(int ));
+    Tmat->A[1] = (int * )malloc((Tmat->n_row+1)*sizeof(int ));
+    row_count  = (int * )calloc(Tmat->n_row    ,sizeof(int ));
     
 
     //count number of elements per row of mat
