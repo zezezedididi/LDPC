@@ -12,7 +12,6 @@
 
 void BSC_noise(int *codeword, float p)
 {
-    srand(time(NULL));
     for (int i = 0; i < CODEWORD_LEN; i++)
     {
         float r = (float)rand() / RAND_MAX;
@@ -63,6 +62,44 @@ void *Transpose_pchk(pchk *Tmat,pchk mat){
     return NULL;
 }
 
+int *generate_random_key(int size){
+    int *key=(int *)malloc(size*sizeof(int));
+
+    for(int i=0;i<size;i++)
+        key[i] = rand()%2;
+
+
+    return key;
+}
+
+void add_error(int *codeword,int codeword_size,int n_errors){
+    int *pos;
+    int new_pos,flag;
+
+    if(codeword_size < n_errors){
+        printf("too much error is being added\n");
+        return;
+    }
+    pos=(int *)malloc(n_errors*sizeof(int));
+
+    for(int i=0;i<n_errors;){
+        new_pos = rand() % codeword_size;
+        flag=1;
+        for(int c=0;c<i;c++){
+            if(pos[c] == new_pos){
+                flag=0;
+                break;
+            }
+        }
+        if(flag){
+            i++;
+            codeword[i]=!codeword[i];
+        }
+    }
+    free(pos);
+    return;
+}
+
 int main(int argc, char *argv[])
 {
     //check input arguments
@@ -77,43 +114,54 @@ int main(int argc, char *argv[])
     get_matrix_from_file(&H,argv[2]);
 
 #ifdef DEBUG
+    printf("G:\n");
     print_parity_check(G);
     printf("\n");
+    printf("H:\n");
     print_parity_check(H);
     printf("\n");
 #endif
-    int message[MESSAGE_LEN] = {0, 0, 0};
+    srand(time(NULL));
+    int *message = generate_random_key(G.n_row);
+#ifdef DEBUG
+    printf("message to be encoded:\n");
+    print_vector_int(message,G.n_row);
+#endif
     
-    int *codeword_encoded = (int*)calloc(CODEWORD_LEN,sizeof(int));
+    int *codeword_encoded = (int*)calloc(G.n_col,sizeof(int));
 
-    int *codeword_decoded = (int*)calloc(CODEWORD_LEN,sizeof(int));
-
-    //int test_codeword[CODEWORD_LEN] = {1, 1, 1, 1, 1, 1};
+    int *codeword_decoded = (int*)calloc(G.n_col,sizeof(int));
 
     encode((int *)message, G, codeword_encoded);
     
-    print_vector_int(codeword_encoded, CODEWORD_LEN);
+    print_vector_int(codeword_encoded, G.n_col);
 
-    //memcpy(codeword_encoded, test_codeword, CODEWORD_LEN*sizeof(int));
+    add_error(codeword_encoded,G.n_col,1);
 
-    BSC_noise(codeword_encoded, BSC_ERROR_RATE);
-
-    print_vector_int(codeword_encoded, CODEWORD_LEN);
+    print_vector_int(codeword_encoded, G.n_col);
     if(H.type == 0){
         decode(H, codeword_encoded, codeword_decoded);
     }
     else{
-        printf("there\n");
         Transpose_pchk(&TH,H);
-        printf("here\n");
 #ifdef DEBUG
 printf("\n");
-        print_parity_check(H);
-        printf("\n");
+        printf("Transposed H:\n");
         print_parity_check(TH);
         printf("\n");
 #endif
         sdecode(H,TH,codeword_encoded,codeword_decoded);
+        free(TH.A[0]);
+        free(TH.A[1]);
+        free(TH.A);
+
+        free(H.A[0]);
+        free(H.A[1]);
+        free(H.A);
+
+        free(G.A[0]);
+        free(G.A[1]);
+        free(G.A);
     }
         
 
@@ -124,6 +172,7 @@ printf("\n");
     }
     print_vector_int(codeword_decoded, CODEWORD_LEN);
 
+    free(message);
     free(codeword_encoded);
     free(codeword_decoded);
 

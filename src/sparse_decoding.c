@@ -47,51 +47,53 @@ void sa_priori_probabilities(int mode,int codeword_len, int *codeword, float** p
 }
 
 //Function to compute extrinsic probabilities matrix (E)
-void scompute_extrinsic(pchk H,pchk TH,float * E, float *M, float *LE){
+void scompute_extrinsic(pchk H,pchk TH,float *M, float *E,float *LE, float *L,float *r, int *z){
     float p;
-    int mj;
+    int mi;
 
-    //compute new LE
     for (int i=0;i<TH.n_row;i++){
-        LE[i]=1;
-        for (int j=TH.A[1][i]; j<TH.A[1][i+1]; j++)
-            LE[i] *= tanh(M[j]/2);
-    }
+        L[i] = r[i];
+        for (int j=TH.A[1][i];j<TH.A[1][i+1];j++){
+            //find the real index where Mi,j is stored
+            for(mi= H.A[1][ TH.A[0][j] ]; H.A[0][mi] !=i; mi++);
 
-    //Update E
-    for (int j=0;j<H.n_row;j++){
-        for (int i=H.A[1][j];i<H.A[1][j+1];i++){
-            //finding the real index where Mi,j is stored
-            for(mj=TH.A[1][ H.A[0][j] ];TH.A[0][mj] != j;mj++);
-
-            p = LE[j] / M[mj];
+            p = LE[ TH.A[0][j] ] / M[mi];
             E[j] = log((1+p)/(1-p));
+
+            L[i] += E[j];
         }
+        z[i] = (L[i] < 0) ? 1 : 0;
     }
+    
 }
 
 //Function to Update matrix M
-void sUpdate_M(pchk H,pchk TH,float *M,float *L,float *E){
-    int mi;
-    
-    for (int i=0;i<TH.n_row;i++){
-        for (int j=TH.A[1][i+1];j<TH.A[1][i+1];j++){
-            //finding the real index where Ei,j is stored
-            for(mi=H.A[1][ TH.A[0][j] ]; H.A[0][mi]!=i; mi++);
+void sUpdate_M(pchk H,pchk TH,float *M, float *E,float *LE, float *L){
+    int mj;
 
-            M[j] = L[i] - E[mi];
+    for (int j=0;j<H.n_row;j++){
+        LE[j]=1;
+        for (int i=H.A[1][j];i<H.A[1][j+1];i++){
+            //finding the real index where Ei,j is stored
+            for(mj=TH.A[1][  H.A[0][i] ];TH.A[0][mj] !=j; mj++);
+            
+
+            M[i] = L[ H.A[0][i] ] - E[mj];
+
+            LE[j] *= tanh(M[i]/2);
         }
     }
 }
 
-//Function to get new best guess as well has probabilities
-void sGet_state(pchk H, float *L, int *z, float *r, float *E){
+//function to innitialize the matrix M (and it's colapsed rows LE)
+void Mi(pchk H, float *M, float *LE, float *r){
 
-    for (int j=0;j<H.n_row;j++){
-        L[j] = r[j];
-        for (int i=H.A[1][j];i<H.A[1][j+1];i++)
-            L[j] += E[i];
-        z[j] = (L[j] < 0) ? 1 : 0;
+    for (int i=0; i < H.n_row; i++){
+        LE[i]=1;
+        for (int j=H.A[1][i];j<H.A[1][i+1];j++){
+            M[j] = r[i];
+            LE[i] *= tanh(M[i]/2);
+        }
     }
 }
 
@@ -117,10 +119,10 @@ void sdecode(pchk H,pchk TH, int *recv_codeword, int *codeword_decoded){
     }
     // Initialize variables
     
-    L  = (float *)calloc(H.n_row  , sizeof(float)); //colapsed E + prob
-    LE = (float *)calloc(TH.n_row , sizeof(float)); //colapsed product of M
-    M  = (float *)malloc(H.type   * sizeof(float)); //the index for M is TH
-    E  = (float *)malloc(H.type   * sizeof(float)); //the index for E is H
+    L  = (float *)calloc(H.n_col  , sizeof(float)); //colapsed E + prob
+    LE = (float *)calloc(H.n_row , sizeof(float)); //colapsed product of M
+    M  = (float *)malloc(H.type   * sizeof(float)); //the index for M is H
+    E  = (float *)malloc(H.type   * sizeof(float)); //the index for E is TH
 
     
     
@@ -142,15 +144,11 @@ void sdecode(pchk H,pchk TH, int *recv_codeword, int *codeword_decoded){
 #endif
     
     // Initialize matrix M
-    for (int i = 0; i < TH.n_row; i++){
-        for (int j=TH.A[1][i];j<TH.A[1][i+1];j++)
-            M[j] = r[i];
-    }
-
+    Mi(H,M,LE,r);
     
 #ifdef DEBUG
     printf("Matrix M: \n");
-    print_sparse_float(TH,M);
+    print_sparse_float(H,M);
 #endif
     while (try_n < MAX_ITERATIONS){
         try_n++;
@@ -159,16 +157,13 @@ void sdecode(pchk H,pchk TH, int *recv_codeword, int *codeword_decoded){
         printf("---------------------ITERATION %d----------------------\n", try_n);
 #endif
         
-        // Compute extrinsic probabilities matrix (E)
-        scompute_extrinsic(H,TH,E,M,LE);
+        // Compute extrinsic probabilities matrix (E) it's compressed vector L and the best guess z
+        scompute_extrinsic(H,TH,M,E,LE,L,r,codeword_decoded);
 #ifdef DEBUG
         printf("Extrinsic probabilities: \n");
-        print_sparse_float(H,E);
-#endif
-        // Test
-        sGet_state(H,L,codeword_decoded,r,E);
-#ifdef DEBUG
-        printf("Final L: ");
+        print_sparse_float(TH,E);
+
+        printf("Final L: \n");
         print_vector_float(L, H.n_col);
 #endif
         // Check if it is a valid codeword
@@ -179,7 +174,7 @@ void sdecode(pchk H,pchk TH, int *recv_codeword, int *codeword_decoded){
             break;
         }
         // Update matrix M
-        sUpdate_M(H,TH,M,L,E);
+        sUpdate_M(H,TH,M,E,LE,L);
     }
 #ifdef DEBUG
     if(try_n == MAX_ITERATIONS)
