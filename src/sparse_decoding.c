@@ -57,7 +57,7 @@ void scompute_extrinsic(pchk H,pchk TH,float *M, float *E,float *LE, float *L,fl
             //find the real index where Mi,j is stored
             for(mi= H.A[1][ TH.A[0][j] ]; H.A[0][mi] !=i; mi++);
 
-            p = LE[ TH.A[0][j] ] / M[mi];
+            p = LE[ TH.A[0][j] ] / tanh(M[mi]/2);
             E[j] = log((1+p)/(1-p));
 
             L[i] += E[j];
