@@ -10,6 +10,8 @@
 //this is to go in the seperate file
 #include <string.h>
 
+int ERROR = 1;
+
 void BSC_noise(int *codeword, float p)
 {
     for (int i = 0; i < CODEWORD_LEN; i++)
@@ -122,23 +124,25 @@ int main(int argc, char *argv[])
     printf("\n");
 #endif
     srand(time(NULL));
+
+    //declare space for messages
     int *message = generate_random_key(G.n_row);
+    int *codeword_encoded = (int*)calloc(G.n_col,sizeof(int));
+    int *codeword_decoded = (int*)calloc(G.n_col,sizeof(int));
+
 #ifdef DEBUG
     printf("message to be encoded:\n");
     print_vector_int(message,G.n_row);
 #endif
-    
-    int *codeword_encoded = (int*)calloc(G.n_col,sizeof(int));
-
-    int *codeword_decoded = (int*)calloc(G.n_col,sizeof(int));
-
+    //encode message
     encode((int *)message, G, codeword_encoded);
-    
     print_vector_int(codeword_encoded, G.n_col);
 
-    add_error(codeword_encoded,G.n_col,1);
-
+    //transmit message
+    add_error(codeword_encoded,G.n_col,ERROR);
     print_vector_int(codeword_encoded, G.n_col);
+
+    //decode message
     if(H.type == 0){
         decode(H, codeword_encoded, codeword_decoded);
     }
@@ -151,6 +155,7 @@ printf("\n");
         printf("\n");
 #endif
         sdecode(H,TH,codeword_encoded,codeword_decoded);
+
         free(TH.A[0]);
         free(TH.A[1]);
         free(TH.A);
@@ -170,12 +175,13 @@ printf("\n");
         printf("Not a valid codeword\n");
         return 0;
     }
-    print_vector_int(codeword_decoded, CODEWORD_LEN);
+        
+    printf("\nresult:\n");
+    print_vector_int(message, G.n_row);
+    print_vector_int(codeword_decoded, G.n_col);
 
     free(message);
     free(codeword_encoded);
     free(codeword_decoded);
-
-    //check_possible_codewords(H);
     return 0;
 }
